@@ -241,7 +241,15 @@ class Gaussians:
         if self.is_isotropic:
 
             ### YOUR CODE HERE ###
-            cov_3D = scales @ scales.T  # (N, 3, 3) R S S.T R.T
+            # cov_3D = scales[:,:,None] * scales.T[:,:,None] #torch.eye(3) @ scales @ scales.T @ torch.eye(3)  # (N, 3, 3) R S S.T R.T
+            # print(cov_3D.shape)
+            S = torch.zeros((N, 3, 3)).to(self.device)
+            S[:, 0, 0] = scales[:, 0]
+            S[:, 1, 1] = scales[:, 0]
+            S[:, 2, 2] = scales[:, 0]
+            SST = S @ S.transpose(-1, -2)
+            assert SST.shape == (N, 3, 3)
+            cov_3D = SST
             assert cov_3D.shape == (N, 3, 3)
 
         # HINT: You can use a function from pytorch3d to convert quaternions to rotation matrices.
@@ -250,7 +258,13 @@ class Gaussians:
             ### YOUR CODE HERE ###
             R = quaternion_to_matrix(quats)
             assert R.shape == (N, 3, 3)
-            cov_3D = R @ scales @ scales.T @ R.T  # (N, 3, 3)
+            S = torch.zeros((N, 3, 3)).to(self.device)
+            S[:, 0, 0] = scales[:, 0]
+            S[:, 1, 1] = scales[:, 1]
+            S[:, 2, 2] = scales[:, 2]
+            SST = S @ S.transpose(-1, -2)
+            assert SST.shape == (N, 3, 3)
+            cov_3D = R @ SST @ R.transpose(-1, -2)  # (N, 3, 3)
             assert cov_3D.shape == (N, 3, 3)
 
         return cov_3D
@@ -284,7 +298,7 @@ class Gaussians:
         ### YOUR CODE HERE ###
         # HINT: Can you extract the world to camera rotation matrix (W) from one of the inputs
         # of this function?
-        W = camera.R # (N, 3, 3)
+        W = (camera.R).repeat(N, 1, 1) # (N, 3, 3)
         assert W.shape == (N, 3, 3)
 
         ### YOUR CODE HERE ###
@@ -293,7 +307,7 @@ class Gaussians:
         assert cov_3D.shape == (N, 3, 3)
         ### YOUR CODE HERE ###
         # HINT: Use the above three variables to compute cov_2D
-        cov_2D = J @ W @ cov_3D @ W.T @ J.T  # (N, 2, 2)
+        cov_2D = J @ W @ cov_3D @ W.transpose(-1, -2) @ J.transpose(-1, -2)  # (N, 2, 2)
         assert cov_2D.shape == (N, 2, 2)
 
         # Post processing to make sure that each 2D Gaussian covers atleast approximately 1 pixel
@@ -372,9 +386,9 @@ class Gaussians:
         HW = points_2D.shape[1]
         # HINT: Refer to README for a relevant equation
         diff = points_2D - means_2D # x - mu_i
-        power = -0.5 * (diff.T @ cov_2D_inverse @ diff)  # (N, H*W)
-        assert power.shape == (N, HW)
-
+        assert diff.shape == (N, HW, 2)
+        quad_form = diff.unsqueeze(-2) @ cov_2D_inverse.unsqueeze(1) @ diff.unsqueeze(-1)  # (N, H*W, 1, 1)
+        power = -0.5 * quad_form.squeeze(-1).squeeze(-1)  # (N, H*W)
         return power
 
     @staticmethod
