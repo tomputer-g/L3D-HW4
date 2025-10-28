@@ -387,8 +387,8 @@ class Gaussians:
         # HINT: Refer to README for a relevant equation
         diff = points_2D - means_2D # x - mu_i
         assert diff.shape == (N, HW, 2)
-        quad_form = diff.unsqueeze(-2) @ cov_2D_inverse.unsqueeze(1) @ diff.unsqueeze(-1)  # (N, H*W, 1, 1)
-        power = -0.5 * quad_form.squeeze(-1).squeeze(-1)  # (N, H*W)
+        tmp = diff.unsqueeze(-2) @ cov_2D_inverse.unsqueeze(1) @ diff.unsqueeze(-1)  # (N, H*W, 1, 1)
+        power = -0.5 * tmp.squeeze(-1).squeeze(-1)  # (N, H*W)
         return power
 
     @staticmethod
@@ -427,7 +427,10 @@ class Scene:
         ### YOUR CODE HERE ###
         # HINT: You can use get the means of 3D Gaussians self.gaussians and calculate
         # the depth using the means and the camera
-        z_vals = None  # (N,)
+        means = self.gaussians.means  # (N, 3)
+        N = means.shape[0]
+        z_vals = camera.transform_points_screen(means)[:,2]
+        assert z_vals.shape == (N,)
 
         return z_vals
 
@@ -448,7 +451,10 @@ class Scene:
         Please refer to the README file for more details.
         """
         ### YOUR CODE HERE ###
-        idxs = None  # (N,)
+        # N = z_vals.shape[0]
+        sorted, indices = torch.sort(z_vals)
+        gt0 = (sorted >= 0)
+        idxs = indices[gt0]
 
         return idxs
 
@@ -484,18 +490,21 @@ class Scene:
 
         ### YOUR CODE HERE ###
         # HINT: Can you find a function in this file that can help?
-        cov_2D_inverse = None  # (N, 2, 2) TODO: Verify shape
-
+        N = means_2D.shape[0]
+        cov_2D_inverse = Gaussians.invert_cov_2D(cov_2D=cov_2D)  # (N, 2, 2) TODO: Verify shape
+        assert cov_2D_inverse.shape == (N, 2, 2)
         ### YOUR CODE HERE ###
         # HINT: Can you find a function in this file that can help?
-        power = None  # (N, H*W)
+        power = Gaussians.evaluate_gaussian_2D(points_2D=points_2D, means_2D=means_2D, cov_2D_inverse=cov_2D_inverse)  # (N, H*W)
+        assert power.shape == (N, H*W)
 
         # Computing exp(power) with some post processing for numerical stability
         exp_power = torch.where(power > 0.0, 0.0, torch.exp(power))
 
         ### YOUR CODE HERE ###
         # HINT: Refer to README for a relevant equation.
-        alphas = None  # (N, H*W)
+        alphas = opacities * exp_power  # (N, H*W)
+        assert alphas.shape == (N, H*W)
         alphas = torch.reshape(alphas, (-1, H, W))  # (N, H, W)
 
         # Post processing for numerical stability
@@ -547,7 +556,7 @@ class Scene:
 
         ### YOUR CODE HERE ###
         # HINT: Refer to README for a relevant equation.
-        transmittance = None  # (N, H, W)
+        transmittance = torch.cumprod(one_minus_alphas, dim=0)[:-1,:,:]  # (N, H, W)
 
         # Post processing for numerical stability
         transmittance = torch.where(transmittance < 1e-4, 0.0, transmittance)  # (N, H, W)
@@ -595,23 +604,28 @@ class Scene:
 
         ### YOUR CODE HERE ###
         # HINT: Can you find a function in this file that can help?
-        means_2D = None  # (N, 2)
-
+        N = means_3D.shape[0]
+        means_2D = Gaussians.compute_means_2D(means_3D=means_3D, camera=camera)  # (N, 2)
+        assert means_2D.shape == (N, 2)
         ### YOUR CODE HERE ###
         # HINT: Can you find a function in this file that can help?
-        cov_2D = None  # (N, 2, 2)
+        cov_2D = self.gaussians.compute_cov_2D(means_3D=means_3D, quats=quats, scales=scales, camera=camera, img_size=img_size)  # (N, 2, 2)
+        assert cov_2D.shape == (N, 2, 2)
 
         # Step 2: Compute alpha maps for each gaussian
 
         ### YOUR CODE HERE ###
         # HINT: Can you find a function in this file that can help?
-        alphas = None  # (N, H, W)
+        W, H = img_size
+        alphas = self.compute_alphas(opacities=opacities, means_2D=means_2D, cov_2D=cov_2D, img_size=img_size)  # (N, H, W)
+        assert alphas.shape == (N, H, W)
 
         # Step 3: Compute transmittance maps for each gaussian
 
         ### YOUR CODE HERE ###
         # HINT: Can you find a function in this file that can help?
-        transmittance = None  # (N, H, W)
+        transmittance = self.compute_transmittance(alphas=alphas, start_transmittance=start_transmittance)  # (N, H, W)
+        assert transmittance.shape == (N, H, W)
 
         # Some unsqueezing to set up broadcasting for vectorized implementation.
         # You can selectively comment these out if you want to compute things
@@ -625,7 +639,10 @@ class Scene:
 
         ### YOUR CODE HERE ###
         # HINT: Refer to README for a relevant equation
-        image = None  # (H, W, 3)
+        #TODO fix ordering
+        
+        inner = colours @ alphas @ transmittance # (N, H, W, 3)
+        image = inner.sum(dim=0) # (H, W, 3)
 
         ### YOUR CODE HERE ###
         # HINT: Can you implement an equation inspired by the equation for colour?
