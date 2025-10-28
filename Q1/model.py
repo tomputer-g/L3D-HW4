@@ -7,6 +7,8 @@ from pytorch3d.ops.knn import knn_points
 from pytorch3d.renderer.cameras import PerspectiveCameras
 from data_utils import load_gaussians_from_ply, colours_from_spherical_harmonics
 
+from pytorch3d.transforms import quaternion_to_matrix
+
 class Gaussians:
 
     def __init__(
@@ -232,19 +234,24 @@ class Gaussians:
         # NOTE: While technically you can use (almost) the same code for the
         # isotropic and anisotropic case, can you think of a more efficient
         # code for the isotropic case?
+        N = quats.shape[0]
 
         # HINT: Are quats ever used or optimized for isotropic gaussians? What will their value be?
         # Based on your answers, can you write a more efficient code for the isotropic case?
         if self.is_isotropic:
 
             ### YOUR CODE HERE ###
-            cov_3D = None  # (N, 3, 3)
+            cov_3D = scales @ scales.T  # (N, 3, 3) R S S.T R.T
+            assert cov_3D.shape == (N, 3, 3)
 
         # HINT: You can use a function from pytorch3d to convert quaternions to rotation matrices.
         else:
 
             ### YOUR CODE HERE ###
-            cov_3D = None  # (N, 3, 3)
+            R = quaternion_to_matrix(quats)
+            assert R.shape == (N, 3, 3)
+            cov_3D = R @ scales @ scales.T @ R.T  # (N, 3, 3)
+            assert cov_3D.shape == (N, 3, 3)
 
         return cov_3D
 
@@ -270,21 +277,24 @@ class Gaussians:
             cov_3D  :   A torch.Tensor of shape (N, 3, 3)
         """
         ### YOUR CODE HERE ###
+        N = quats.shape[0]
         # HINT: For computing the jacobian J, can you find a function in this file that can help?
-        J = None  # (N, 2, 3)
-
+        J = self._compute_jacobian(means_3D=means_3D, camera=camera, img_size=img_size)  # (N, 2, 3)
+        assert J.shape == (N, 2, 3)
         ### YOUR CODE HERE ###
         # HINT: Can you extract the world to camera rotation matrix (W) from one of the inputs
         # of this function?
-        W = None  # (N, 3, 3)
+        W = camera.R # (N, 3, 3)
+        assert W.shape == (N, 3, 3)
 
         ### YOUR CODE HERE ###
         # HINT: Can you find a function in this file that can help?
-        cov_3D = None  # (N, 3, 3)
-
+        cov_3D = self.compute_cov_3D(quats=quats, scales=scales)  # (N, 3, 3)
+        assert cov_3D.shape == (N, 3, 3)
         ### YOUR CODE HERE ###
         # HINT: Use the above three variables to compute cov_2D
-        cov_2D = None  # (N, 2, 2)
+        cov_2D = J @ W @ cov_3D @ W.T @ J.T  # (N, 2, 2)
+        assert cov_2D.shape == (N, 2, 2)
 
         # Post processing to make sure that each 2D Gaussian covers atleast approximately 1 pixel
         cov_2D[:, 0, 0] += 0.3
@@ -309,7 +319,9 @@ class Gaussians:
         ### YOUR CODE HERE ###
         # HINT: Do note that means_2D have units of pixels. Hence, you must apply a
         # transformation that moves points in the world space to screen space.
-        means_2D = None  # (N, 2)
+        N = means_3D.shape[0]
+        means_2D = camera.transform_points_screen(means_3D)[:,:2]  # (N, 2)
+        assert means_2D.shape == (N, 2)
         return means_2D
 
     @staticmethod
@@ -356,8 +368,12 @@ class Gaussians:
                                 power of the N 2D Gaussians at every pixel location in an image.
         """
         ### YOUR CODE HERE ###
+        N = means_2D.shape[0]
+        HW = points_2D.shape[1]
         # HINT: Refer to README for a relevant equation
-        power = None  # (N, H*W)
+        diff = points_2D - means_2D # x - mu_i
+        power = -0.5 * (diff.T @ cov_2D_inverse @ diff)  # (N, H*W)
+        assert power.shape == (N, HW)
 
         return power
 
