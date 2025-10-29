@@ -503,7 +503,7 @@ class Scene:
 
         ### YOUR CODE HERE ###
         # HINT: Refer to README for a relevant equation.
-        alphas = opacities * exp_power  # (N, H*W)
+        alphas = opacities[:, None] * exp_power  # (N, H*W)
         assert alphas.shape == (N, H*W)
         alphas = torch.reshape(alphas, (-1, H, W))  # (N, H, W)
 
@@ -639,18 +639,17 @@ class Scene:
 
         ### YOUR CODE HERE ###
         # HINT: Refer to README for a relevant equation
-        #TODO fix ordering
         
-        inner = colours @ alphas @ transmittance # (N, H, W, 3)
+        inner = colours * alphas * transmittance # (N, H, W, 3)
         image = inner.sum(dim=0) # (H, W, 3)
 
         ### YOUR CODE HERE ###
         # HINT: Can you implement an equation inspired by the equation for colour?
-        depth = None  # (H, W, 1)
-
+        depth = z_vals * transmittance * alphas  # (H, W, 1)
+        depth = depth.mean(dim=0)
         ### YOUR CODE HERE ###
         # HINT: Can you implement an equation inspired by the equation for colour?
-        mask = None  # (H, W, 1)
+        mask = (depth == 0)  # (H, W, 1)
 
         final_transmittance = transmittance[-1, ..., 0].unsqueeze(0)  # (1, H, W)
         return image, depth, mask, final_transmittance
