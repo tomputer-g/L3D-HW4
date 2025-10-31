@@ -1,6 +1,7 @@
 import math
 import torch
 import numpy as np
+from tqdm import tqdm
 
 from typing import Tuple, Optional
 from pytorch3d.ops.knn import knn_points
@@ -429,7 +430,9 @@ class Scene:
         # the depth using the means and the camera
         means = self.gaussians.means  # (N, 3)
         N = means.shape[0]
-        z_vals = camera.transform_points_screen(means)[:,2]
+        extrinsics = camera.get_world_to_view_transform()
+        pts = extrinsics.transform_points(means)
+        z_vals = pts[:, 2]
         assert z_vals.shape == (N,)
 
         return z_vals
@@ -454,7 +457,7 @@ class Scene:
         # N = z_vals.shape[0]
         sorted, indices = torch.sort(z_vals)
         gt0 = (sorted >= 0)
-        idxs = indices[gt0]
+        idxs = indices[gt0].to(torch.int64)
 
         return idxs
 
@@ -505,7 +508,7 @@ class Scene:
         # HINT: Refer to README for a relevant equation.
         alphas = opacities[:, None] * exp_power  # (N, H*W)
         assert alphas.shape == (N, H*W)
-        alphas = torch.reshape(alphas, (-1, H, W))  # (N, H, W)
+        alphas = torch.reshape(alphas, (N, H, W))  # (N, H, W)
 
         # Post processing for numerical stability
         alphas = torch.minimum(alphas, torch.full_like(alphas, 0.99))
@@ -564,7 +567,7 @@ class Scene:
         return transmittance
 
     def splat(
-        self, camera: PerspectiveCameras, means_3D: torch.tensor, z_vals: torch.Tensor,
+        self, camera: PerspectiveCameras, means_3D: torch.Tensor, z_vals: torch.Tensor,
         quats: torch.Tensor, scales: torch.Tensor, colours: torch.Tensor,
         opacities: torch.Tensor, img_size: Tuple = (256, 256),
         start_transmittance: Optional[torch.Tensor] = None,
@@ -639,19 +642,29 @@ class Scene:
 
         ### YOUR CODE HERE ###
         # HINT: Refer to README for a relevant equation
+
+        AT = alphas * transmittance
         
-        inner = colours * alphas * transmittance # (N, H, W, 3)
-        image = inner.sum(dim=0) # (H, W, 3)
+        image = (colours * AT).sum(dim=0) # (H, W, 3)
+        # image = inner.sum(dim=0) # (H, W, 3)
 
         ### YOUR CODE HERE ###
         # HINT: Can you implement an equation inspired by the equation for colour?
-        depth = z_vals * transmittance * alphas  # (H, W, 1)
-        depth = depth.mean(dim=0)
-        ### YOUR CODE HERE ###
-        # HINT: Can you implement an equation inspired by the equation for colour?
-        mask = (depth == 0)  # (H, W, 1)
+        depth = (z_vals * AT).sum(dim=0)  # (H, W, 1)
 
         final_transmittance = transmittance[-1, ..., 0].unsqueeze(0)  # (1, H, W)
+
+
+        ### YOUR CODE HERE ###
+        # HINT: Can you implement an equation inspired by the equation for colour?
+        mask = (AT).sum(dim = 0)
+        del z_vals
+        del alphas
+        del colours
+        del transmittance
+        torch.cuda.empty_cache()
+        
+        # mask = (1 - final_transmittance).unsqueeze(-1).squeeze(0)  # (H, W, 1)
         return image, depth, mask, final_transmittance
 
     def render(
@@ -737,7 +750,7 @@ class Scene:
             depth = torch.zeros((H, W, 1), dtype=torch.float32).to(D)
             mask = torch.zeros((H, W, 1), dtype=torch.float32).to(D)
 
-            for b_idx in range(num_mini_batches):
+            for b_idx in tqdm(range(num_mini_batches)):
 
                 quats_ = quats[b_idx * per_splat: (b_idx+1) * per_splat]
                 scales_ = scales[b_idx * per_splat: (b_idx+1) * per_splat]

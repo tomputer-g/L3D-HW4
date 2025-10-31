@@ -15,7 +15,7 @@ def create_renders(args):
     dim = args.img_dim
     img_size = (dim, dim)
 
-    num_views = 1#32
+    num_views = 32
     azims = np.linspace(-180, 180, num_views)
     elevs = np.linspace(-180, 180, num_views)
 
