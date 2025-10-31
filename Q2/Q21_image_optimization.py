@@ -42,9 +42,9 @@ def optimize_an_image(
         
         ### YOUR CODE HERE ###
         if args.sds_guidance:
-            loss = 
+            loss = sds.sds_loss(latents, embeddings["default"], text_embeddings_uncond=embeddings["uncond"])
         else:
-            loss = 
+            loss = sds.sds_loss(latents, embeddings["default"], text_embeddings_uncond=None)
 
         # Backward pass
         loss.backward()
