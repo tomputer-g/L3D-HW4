@@ -90,6 +90,7 @@ class SDS:
             latents (tensor): latent representation. shape (1, 4, 64, 64)
         """
         # check the shape of the image should be 512x512
+        # print(img.shape)
         assert img.shape[-2:] == (512, 512), "Image shape should be 512x512"
 
         img = 2 * img - 1  # [0, 1] => [-1, 1]
@@ -153,21 +154,27 @@ class SDS:
         with torch.no_grad():
             ### YOUR CODE HERE ###
 
+            w_t = 1 - self.alphas[t]
+
             eps = torch.randn_like(latents)
+
+            x_t = torch.sqrt(self.alphas[t])[:, None, None, None] * latents + torch.sqrt(
+                1 - self.alphas[t]
+            )[:, None, None, None] * eps
+            
             if text_embeddings_uncond is not None and guidance_scale != 1:
                 ### YOUR CODE HERE ###
-                eps_hat_c = self.unet(latents, t, encoder_hidden_states=text_embeddings).sample
-                eps_hat_u = self.unet(latents, t, encoder_hidden_states=text_embeddings_uncond).sample
+                eps_hat_c = self.unet(x_t, t, encoder_hidden_states=text_embeddings).sample
+                eps_hat_u = self.unet(x_t, t, encoder_hidden_states=text_embeddings_uncond).sample
                 eps_hat = eps_hat_c + guidance_scale * (eps_hat_c - eps_hat_u)
             else:
-                eps_hat = self.unet(latents, t, encoder_hidden_states=text_embeddings).sample
+                eps_hat = self.unet(x_t, t, encoder_hidden_states=text_embeddings).sample
 
-            delta = -grad_scale * (eps_hat - eps)
+            delta = -w_t * (eps_hat - eps)
             target = latents + delta
 
 
         # Compute SDS loss
-        w = 1 - self.alphas[t]
-        loss = F.mse_loss(latents, target) * w
+        loss = F.mse_loss(latents, target) * grad_scale
 
         return loss

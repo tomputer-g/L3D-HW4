@@ -81,14 +81,17 @@ def optimize_mesh_texture(
     azims = torch.linspace(-180, 180, num_views)
     elevs = torch.linspace(-180, 180, num_views)
     for i in range(num_views):
-
+        dim = 512
         dist = 6.0
+        f_pt = 5.0 * dim/2.0
+        principal_pt = (dim/2, dim/2)
+        img_size = (dim, dim)
         R, T = look_at_view_transform(dist = dist, azim=azims[i], elev=elevs[i], up=((0, -1, 0),))
         camera = PerspectiveCameras(
-            focal_length=5.0 * dim/2.0, in_ndc=False,
-            principal_point=((dim/2, dim/2),),
+            focal_length=f_pt, in_ndc=False,
+            principal_point=(principal_pt,),
             R=R, T=T, image_size=(img_size,),
-        ).to(args.device)
+        ).to(device)
         query_cameras.append(camera)
 
     # Step 4. Create optimizer training parameters
@@ -109,13 +112,16 @@ def optimize_mesh_texture(
 
         # Forward pass
         # Render a randomly sampled camera view to optimize in this iteration
-        rend = renderer(mesh, cameras=query_cameras[torch.randint(0, num_views, (1,)).item()])
+        idx = torch.randint(0, num_views, (1,)).item()
+        cam = query_cameras[idx]
+        rend = renderer(mesh, cameras=cam, lights=lights)
+        rend = rend[..., :3]  # (B, H, W, 4) -> (B, H, W, 3)
+        # ensure tensor is (B, 3, H, W) and on the correct device/dtype
+        rend = rend.permute(0, 3, 1, 2)#.contiguous().float().to(device)
         # Encode the rendered image to latents
         latents = sds.encode_imgs(rend)
         # Compute the loss
         loss = sds.sds_loss(latents, embeddings["default"], text_embeddings_uncond=embeddings["uncond"])
-
-
 
         # Backward pass
         loss.backward()
