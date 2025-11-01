@@ -14,7 +14,7 @@ from optimizer import Adan
 from PIL import Image
 from SDS import SDS
 from utils import prepare_embeddings, seed_everything
-
+import torch.nn.functional as F
 
 def optimize_nerf(
     sds,
@@ -161,10 +161,11 @@ def optimize_nerf(
             else:
                 ### YOUR CODE HERE ###
                 pass
+            pred_rgb = F.interpolate(pred_rgb, (512, 512), mode='bilinear', align_corners=False)
 
   
             ### YOUR CODE HERE ###
-            print(pred_rgb.shape)
+            # print(pred_rgb.shape)
             latents = sds.encode_imgs(pred_rgb)
             loss = sds.sds_loss(latents, text_cond, text_uncond)
 
