@@ -164,6 +164,7 @@ def optimize_nerf(
 
   
             ### YOUR CODE HERE ###
+            print(pred_rgb.shape)
             latents = sds.encode_imgs(pred_rgb)
             loss = sds.sds_loss(latents, text_cond, text_uncond)
 
