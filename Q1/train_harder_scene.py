@@ -13,12 +13,20 @@ from data_utils_harder_scene import get_nerf_datasets, trivial_collate
 
 from pytorch3d.renderer import PerspectiveCameras
 from skimage.metrics import peak_signal_noise_ratio, structural_similarity
+import torch.nn.functional as F
 
 def make_trainable(gaussians):
 
     ### YOUR CODE HERE ###
     # HINT: You can access and modify parameters from gaussians
-    pass
+    attrs = ["means", "pre_act_scales", "colours", "pre_act_opacities"]
+    if not gaussians.is_isotropic:
+        attrs += ["pre_act_quats"]
+
+    for attr in attrs:
+        param = getattr(gaussians, attr)
+        param.requires_grad = True
+    gaussians.check_if_trainable()
 
 def setup_optimizer(gaussians):
 
@@ -34,10 +42,10 @@ def setup_optimizer(gaussians):
         {'params': [gaussians.pre_act_opacities], 'lr': 0.05, "name": "opacities"},
         {'params': [gaussians.pre_act_scales], 'lr': 0.05, "name": "scales"},
         {'params': [gaussians.colours], 'lr': 0.05, "name": "colours"},
-        {'params': [gaussians.means], 'lr': 0.05, "name": "means"},
+        {'params': [gaussians.means], 'lr': 0.01, "name": "means"},
     ]
-    optimizer = torch.optim.Adam(parameters, lr=0.0, eps=1e-15)
-    optimizer = None
+    optimizer = torch.optim.Adam(parameters, lr=0.05, eps=1e-15)
+    # optimizer = None
 
     return optimizer
 
@@ -117,11 +125,12 @@ def run_training(args):
         # HINT: Set img_size to (128, 128)
         # HINT: Get per_splat from args.gaussians_per_splat
         # HINT: camera is available above
-        pred_img = None
+        pred_img, pred_depth, pred_mask = scene.render(camera=camera, per_splat=args.gaussians_per_splat, 
+                                img_size=(128, 128), bg_colour=(0,0,0))
 
         # Compute loss
         ### YOUR CODE HERE ###
-        loss = None
+        loss = F.l1_loss(pred_img, gt_img)
 
         loss.backward()
         optimizer.step()
@@ -160,7 +169,8 @@ def run_training(args):
             # HINT: Set img_size to (128, 128)
             # HINT: Get per_splat from args.gaussians_per_splat
             # HINT: camera is available above
-            pred_img = None
+            pred_img, pred_depth, pred_mask = scene.render(camera=camera, per_splat=args.gaussians_per_splat, 
+                                img_size=(128, 128), bg_colour=(0,0,0))
 
         pred_npy = pred_img.detach().cpu().numpy()
         pred_npy = (np.clip(pred_npy, 0.0, 1.0) * 255.0).astype(np.uint8)
@@ -186,7 +196,8 @@ def run_training(args):
             # HINT: Set img_size to (128, 128)
             # HINT: Get per_splat from args.gaussians_per_splat
             # HINT: camera is available above
-            pred_img = None
+            pred_img, pred_depth, pred_mask = scene.render(camera=camera, per_splat=args.gaussians_per_splat, 
+                                img_size=(128, 128), bg_colour=(0,0,0))
 
             gt_npy = gt_img.detach().cpu().numpy()
             pred_npy = pred_img.detach().cpu().numpy()
