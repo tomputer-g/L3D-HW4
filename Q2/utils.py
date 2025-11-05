@@ -151,6 +151,6 @@ def prepare_embeddings(sds, prompt, neg_prompt="", view_dependent=False):
     embeddings["default"] = sds.get_text_embeddings(prompt)  # shape [1, 77, 1024]
     embeddings["uncond"] = sds.get_text_embeddings(neg_prompt)  # shape [1, 77, 1024]
     if view_dependent:
-        for d in ["front", "side", "back"]:
-            embeddings[d] = sds.get_text_embeddings([f"{prompt}, {d} view"])
+        for d in ["front", "side", "back", "overhead", "underneath"]:
+            embeddings[d] = sds.get_text_embeddings([f"{prompt}, {d} view"]) # "overhead" if elev > 60 deg; front if angle < 60... 'whichever one closest to sampled azimuth'
     return embeddings

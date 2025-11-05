@@ -153,6 +153,8 @@ def optimize_nerf(
             # Compuate the loss
             # interpolate text_z
             azimuth = data["azimuth"]  # [-180, 180]
+            polar = data["polar"]  # [0, 180]
+            print(polar)
             assert azimuth.shape[0] == 1, "Batch size should be 1"
             text_uncond = embeddings["uncond"]
 
@@ -160,7 +162,20 @@ def optimize_nerf(
                 text_cond = embeddings["default"]
             else:
                 ### YOUR CODE HERE ###
-                pass
+                if polar[0] > 120:
+                    text_cond = embeddings["overhead"]
+                elif polar[0] < 60:
+                    text_cond = embeddings["underneath"]
+                else:
+                    if azimuth[0] >= -45 and azimuth[0] < 45:
+                        text_cond = embeddings["front"]
+                    elif (azimuth[0] >= 45 and azimuth[0] < 135):
+                        text_cond = embeddings["side"]
+                    elif (azimuth[0] >= 135 or azimuth[0] < -135):
+                        text_cond = embeddings["back"]
+                    elif (azimuth[0] >= -135 and azimuth[0] < -45):
+                        text_cond = embeddings["side"]
+                # ["front", "side", "back", "overhead", "underneath"]:
             pred_rgb = F.interpolate(pred_rgb, (512, 512), mode='bilinear', align_corners=False)
 
   
