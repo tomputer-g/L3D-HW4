@@ -231,16 +231,16 @@ def colours_from_spherical_harmonics(spherical_harmonics, gaussian_dirs):
     c1 = spherical_harmonics[:, 3:6]
     c2 = spherical_harmonics[:, 6:9]
     c3 = spherical_harmonics[:, 9:12]
-    x = gaussian_dirs[:, 0]
-    y = gaussian_dirs[:, 1]
-    z = gaussian_dirs[:, 2]
+    x = gaussian_dirs[:, 0:1]
+    y = gaussian_dirs[:, 1:2]
+    z = gaussian_dirs[:, 2:3]
+    color_xyz = - SH_C1 * y * c1 + SH_C1 * z * c2 - SH_C1 * x * c3
 
-    color_xyz = (- SH_C1 * y * c1 + SH_C1 * z * c2 - SH_C1 * x * c3)
-    c4 = spherical_harmonics[12:15]
-    c5 = spherical_harmonics[15:18]
-    c6 = spherical_harmonics[18:21]
-    c7 = spherical_harmonics[21:24]
-    c8 = spherical_harmonics[24:27]
+    c4 = spherical_harmonics[:, 12:15]
+    c5 = spherical_harmonics[:, 15:18]
+    c6 = spherical_harmonics[:, 18:21]
+    c7 = spherical_harmonics[:, 21:24]
+    c8 = spherical_harmonics[:, 24:27]
 
     (xx, yy, zz) = (x * x, y * y, z * z)
     (xy, yz, xz) = (x * y, y * z, x * z)
@@ -250,14 +250,14 @@ def colours_from_spherical_harmonics(spherical_harmonics, gaussian_dirs):
                 SH_C2_2 * (2.0 * zz - xx - yy) * c6 + \
                 SH_C2_3 * xz * c7 + \
                 SH_C2_4 * (xx - yy) * c8
-    
-    c9 = spherical_harmonics[27:30]
-    c10 = spherical_harmonics[30:33]
-    c11 = spherical_harmonics[33:36]
-    c12 = spherical_harmonics[36:39]
-    c13 = spherical_harmonics[39:42]
-    c14 = spherical_harmonics[42:45]
-    c15 = spherical_harmonics[45:48]
+
+    c9 = spherical_harmonics[:, 27:30]
+    c10 = spherical_harmonics[:, 30:33]
+    c11 = spherical_harmonics[:, 33:36]
+    c12 = spherical_harmonics[:, 36:39]
+    c13 = spherical_harmonics[:, 39:42]
+    c14 = spherical_harmonics[:, 42:45]
+    c15 = spherical_harmonics[:, 45:48]
 
     color_xxxyyyzzz = SH_C3_0 * y * (3.0 * xx - yy) * c9 + \
         SH_C3_1 * xy * z * c10 + \
@@ -270,5 +270,5 @@ def colours_from_spherical_harmonics(spherical_harmonics, gaussian_dirs):
 
     colours = SH_C0 * spherical_harmonics[:, :3] + color_xyz + color_xxyyzz + color_xxxyyyzzz
     colours += 0.5
-    colours = np.clip(colours, 0.0, 1.0)
+    colours = torch.clip(colours, 0.0, 1.0)
     return colours
