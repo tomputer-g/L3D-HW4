@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>index.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
+<h1 id="q1">Q1</h1>
+<h2 id="115-3d-gaussian-rasterization-perform-splatting">1.1.5. 3D Gaussian Rasterization. Perform Splatting</h2>
+<p>Here is the rendered result:</p>
+<image src="images/q1/q1_1_render.gif" />
+<h2 id="122-training-3d-gaussian-representations">1.2.2. Training 3D Gaussian Representations</h2>
+<p>The learning rates I used for the parameters are the following:</p>
+<ul>
+<li>opacities: 0.05</li>
+<li>scales: 0.05</li>
+<li>colors: 0.05</li>
+<li>means: 0.01</li>
+<li>optimizer default: 0.05</li>
+</ul>
+<p>I trained this for 1000 iterations.</p>
+<p>The resulting mean PSNR is 28.195, and the mean SSIM score is 0.922.</p>
+<p>Here is the training progress of the splats visualized:</p>
+<image src="images/q1/q1_2_training_progress.gif" />
+<p>Here is the rendered final result after training:</p>
+<image src="images/q1/q1_2_training_final_renders.gif" />
+<h2 id="131-rendering-using-spherical-harmonics">1.3.1. Rendering using Spherical Harmonics</h2>
+<p>Rendered with spherical harmonics:</p>
+<image src="images/q1/q1_3_render.gif" />
+<p>Rendered without spherical harmonics (From q1.1.5 above):</p>
+<image src="images/q1/q1_1_render.gif" />
+<p>Taking some specific frames, we can see how view dependance affects the rendering process:</p>
+<table>
+<thead>
+<tr>
+<th>View</th>
+<th style="text-align:center">Without spherical harmonics (Q1.1)</th>
+<th style="text-align:center">With spherical harmonics (Q1.3)</th>
+<th style="text-align:left">Observation Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>000</td>
+<td style="text-align:center"><img src="images/q1/q1_1_render/000.png" alt="000"></td>
+<td style="text-align:center"><img src="images/q1/q1_3_render/000.png" alt="000"></td>
+<td style="text-align:left">Note a subtle transition of the shadow when using spherical harmonics instead of the dull and discontinuous shadow on the seat.</td>
+</tr>
+<tr>
+<td>010</td>
+<td style="text-align:center"><img src="images/q1/q1_1_render/010.png" alt="010"></td>
+<td style="text-align:center"><img src="images/q1/q1_3_render/010.png" alt="010"></td>
+<td style="text-align:left">The material of the seatback and seat clearly has a sheen that is not present from the scene without spherical harmonics, due to view dependance.</td>
+</tr>
+</tbody>
+</table>
+<h1 id="q2">Q2</h1>
+<h2 id="21-diffusion-guided-image-optimization">2.1. Diffusion-guided Image Optimization</h2>
+<p><strong>All diffusion results obtained with 2000 iterations of training.</strong></p>
+<table>
+<thead>
+<tr>
+<th>Prompt</th>
+<th style="text-align:center">Result Without Guidance</th>
+<th style="text-align:center">Result With Guidance</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>a hamburger</code></td>
+<td style="text-align:center"><img src="images/q2/image/a_hamburger_unguided.png" alt="img"></td>
+<td style="text-align:center"><img src="images/q2/image/a_hamburger_guided.png" alt="img"></td>
+</tr>
+<tr>
+<td><code>a standing corgi dog</code></td>
+<td style="text-align:center"><img src="images/q2/image/a_standing_corgi_dog_unguided.png" alt="img"></td>
+<td style="text-align:center"><img src="images/q2/image/a_standing_corgi_dog_guided.png" alt="img"></td>
+</tr>
+<tr>
+<td><code>a humanoid robot</code></td>
+<td style="text-align:center"><img src="images/q2/image/a_humanoid_robot_unguided.png" alt="img"></td>
+<td style="text-align:center"><img src="images/q2/image/a_humanoid_robot_guided.png" alt="img"></td>
+</tr>
+<tr>
+<td><code>a sports car</code></td>
+<td style="text-align:center"><img src="images/q2/image/a_sports_car_unguided.png" alt="img"></td>
+<td style="text-align:center"><img src="images/q2/image/a_sports_car_guided.png" alt="img"></td>
+</tr>
+</tbody>
+</table>
+<p>It is worthy to note that all results without using guidance over SDS loss always collapses into some white-beige scene overall within a few hundred steps, while using guidance always produces non-empty results. All prompts were trained five times with identical results.</p>
+<h2 id="22-texture-map-optimization-for-mesh">2.2. Texture Map Optimization for Mesh</h2>
+<h3 id="prompt-%22a-hamburger%22">Prompt: &quot;A hamburger&quot;</h3>
+<image src="images/q2/mesh/a_hamburger.gif" />
+<h3 id="prompt-%22a-standing-corgi-dog%22">Prompt: &quot;A standing corgi dog&quot;</h3>
+<image src="images/q2/mesh/a_standing_corgi_dog.gif" />
+<h3 id="prompt-%22a-pizza-slice%22">Prompt: &quot;A pizza slice&quot;</h3>
+<image src="images/q2/mesh/a_pizza_slice.gif" />
+<h2 id="23-nerf-optimization">2.3. NeRF Optimization</h2>
+<table>
+<thead>
+<tr>
+<th>Prompt</th>
+<th style="text-align:center">Result depth map</th>
+<th style="text-align:center">Result rendered RGB</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>a standing corgi dog</code></td>
+<td style="text-align:center"><video width="128" height="128" controls><source src="images/q2/nerf/a_standing_corgi_dog/depth_ep_99.mp4"></video></td>
+<td style="text-align:center"><video width="128" height="128" controls><source src="images/q2/nerf/a_standing_corgi_dog/rgb_ep_99.mp4"></video></td>
+</tr>
+<tr>
+<td><code>a hamburger</code></td>
+<td style="text-align:center"><video width="128" height="128" controls><source src="images/q2/nerf/a_hamburger/depth_ep_99.mp4"></video></td>
+<td style="text-align:center"><video width="128" height="128" controls><source src="images/q2/nerf/a_hamburger/rgb_ep_99.mp4"></video></td>
+</tr>
+<tr>
+<td><code>a potted plant</code></td>
+<td style="text-align:center"><video width="128" height="128" controls><source src="images/q2/nerf/a_potted_plant/depth_ep_80.mp4"></video></td>
+<td style="text-align:center"><video width="128" height="128" controls><source src="images/q2/nerf/a_potted_plant/rgb_ep_80.mp4"></video></td>
+</tr>
+<tr>
+<td><code>a sports car</code></td>
+<td style="text-align:center"><video width="128" height="128" controls><source src="images/q2/nerf/a_sports_car/depth_ep_99.mp4"></video></td>
+<td style="text-align:center"><video width="128" height="128" controls><source src="images/q2/nerf/a_sports_car/rgb_ep_99.mp4"></video></td>
+</tr>
+</tbody>
+</table>
+<p>Note that the sports car does not converge during training. This is to show that view-independent text embedding would try to optimize every view independently and not consider the viewing angle.</p>
+<h2 id="24-bonus-view-dependant-text-embedding">2.4 Bonus: View Dependant text embedding</h2>
+<table>
+<thead>
+<tr>
+<th>Prompt</th>
+<th style="text-align:center">Result depth map</th>
+<th style="text-align:center">Result rendered RGB</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>a standing corgi dog</code></td>
+<td style="text-align:center"><video width="128" height="128" controls><source src="images/q2/nerf_viewdep/a_standing_corgi_dog/depth_ep_99.mp4"></video></td>
+<td style="text-align:center"><video width="128" height="128" controls><source src="images/q2/nerf_viewdep/a_standing_corgi_dog/rgb_ep_99.mp4"></video></td>
+</tr>
+<tr>
+<td><code>a sports car</code></td>
+<td style="text-align:center"><video width="128" height="128" controls><source src="images/q2/nerf_viewdep/a_sports_car/depth_ep_99.mp4"></video></td>
+<td style="text-align:center"><video width="128" height="128" controls><source src="images/q2/nerf_viewdep/a_sports_car/rgb_ep_99.mp4"></video></td>
+</tr>
+</tbody>
+</table>
+<p>Using view dependent text embedding as given in the utils python script, we see that the standing corgi dog prompt actually performs worse on the view dependant text embedding, and the training fails to converge. However, when the view dependent text embedding is used on the sports car prompt, it performs better than in Q2.3 and converges to a mostly accurate sports car shape with one of the front pillars missing, but at least converges during training.</p>
+<p>This shows that the primitive view dependance of the text embedding is not as robust, though it did help the sports car prompt converge. In the code, currently, the view dependance directions are only from &quot;front&quot;, &quot;side&quot;, and &quot;back&quot;, while the paper also mentions &quot;overhead&quot; and &quot;underneath&quot; views. If the set of embeddings were expanded as per the DreamFusion paper, it may significantly improve the output render quality.</p>
+
+</body>
+</html>
